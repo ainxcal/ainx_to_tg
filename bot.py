@@ -6,6 +6,7 @@ import os
 import aiohttp
 
 load_dotenv()
+ALLOWED_USER_ID = 1352654147735785624
 
 ###
 # .env config
@@ -44,19 +45,24 @@ async def on_ready():
 
 @bot.event
 async def on_message(message):
-    msg_id = 0
+    global msg_id 
+
+    if message.author.id != ALLOWED_USER_ID:
+        return
+
     if message.author == bot.user:
         return
 
-    await asyncio.sleep(1)
+    if msg_id == message.id:
+        return
+    
 
     print(f"ID: {message.id}, mentions: {message.mentions}")
 
-    if msg_id == message.id:
-        print(f"don't send msg")
-    else:
-        await send_to_telegram(message.content)
-        msg_id = message.id
+    await send_to_telegram(message.content)
+    msg_id = message.id
+
+    await asyncio.sleep(1)
 
 
 async def send_to_telegram(message):
