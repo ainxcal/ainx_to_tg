@@ -3,7 +3,7 @@ import discord
 from discord.ext import commands
 from dotenv import load_dotenv
 import os
-import aiohttp  # 异步 HTTP 请求库
+import aiohttp
 
 load_dotenv()
 
@@ -12,10 +12,20 @@ load_dotenv()
 # DC bot token
 dctoken = os.getenv("DC_BOT_TOKEN")
 
+
 # TG bot token
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 TG_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 TG_TOPIC_ID = os.getenv("MESSAGE_THREAD_ID")
+
+if not dctoken:
+    raise ValueError("NULL DC_BOT_TOKEN")
+if not TELEGRAM_BOT_TOKEN:
+    raise ValueError("NULL TELEGRAM_BOT_TOKEN")
+if not TG_CHAT_ID:
+    raise ValueError("NULL TELEGRAM_CHAT_ID")
+if not TG_TOPIC_ID:
+    raise ValueError("NULL MESSAGE_THREAD_ID")
 ###
 
 # -------------------
@@ -23,7 +33,7 @@ TG_TOPIC_ID = os.getenv("MESSAGE_THREAD_ID")
 intents = discord.Intents.default()
 intents.message_content = True
 
-# 创建 bot client
+# create bot client
 bot = commands.Bot(command_prefix="!", intents=intents)
 
 
@@ -34,14 +44,19 @@ async def on_ready():
 
 @bot.event
 async def on_message(message):
+    msg_id = 0
     if message.author == bot.user:
         return
 
     await asyncio.sleep(1)
 
-    print(f"get msg：{message.content}")
-    await send_to_telegram(message.content)
+    print(f"ID: {message.id}, mentions: {message.mentions}")
 
+    if msg_id == message.id:
+        print(f"don't send msg")
+    else:
+        await send_to_telegram(message.content)
+        msg_id = message.id
 
 
 async def send_to_telegram(message):
@@ -64,6 +79,6 @@ async def send_to_telegram(message):
             await asyncio.sleep(5)
 
 
-# 启动 bot
+#RUN BOT
 if __name__ == "__main__":
     bot.run(dctoken)
