@@ -18,7 +18,7 @@ logging.basicConfig(
 )
 
 load_dotenv()
-ALLOWED_USER_IDS = {1352654147735785624, 159985870458322944}
+ALLOWED_USER_IDS = {1352654147735785624, 159985870458322944, 1355965326856290618}
 processed_messages = set()
 
 # -------------------
@@ -81,10 +81,12 @@ async def send_to_telegram(message):
         "message_thread_id": TG_TOPIC_ID
     }
 
-    retry_delay = 2  #init 2s
+    retry_delay = 2  # init 2s
+    MAX_RETRIES = 5
+    retry_count = 0
 
     async with aiohttp.ClientSession() as session:
-        while True:
+        while retry_count < MAX_RETRIES:
             try:
                 async with session.post(url, data=payload) as response:
                     if response.status == 200:
@@ -101,6 +103,7 @@ async def send_to_telegram(message):
                 logging.error(f"Telegram request failed: {e}, retrying in {retry_delay}s...")
                 await asyncio.sleep(retry_delay)
                 retry_delay = min(retry_delay * 2, 30)
+                retry_count += 1
 
 
 # RUN BOT
