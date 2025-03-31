@@ -1,35 +1,65 @@
+import asyncio
+import time
+
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
 import os
+import requests
 
 load_dotenv()
 
-# 从环境变量中获取 token
-token = os.getenv("TOKEN")
-if token is None:
-    raise ValueError("token null")
+###
+# .env config
+# DC bot token
+dctoken = os.getenv("DC_BOT_TOKEN")
 
-# 创建 Intents 对象
+#TG bot token
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+TG_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
+TG_TOPIC_ID = os.getenv("MESSAGE_THREAD_ID")
+###
+
+
+# -------------------
+#  Intents class
 intents = discord.Intents.default()
-intents.message_content = True  # 确保你启用了这个权限
+intents.message_content = True
 
-# 创建一个 Bot 客户端，传入代理连接器
+# create bot client
 bot = commands.Bot(command_prefix="!", intents=intents)
 
 @bot.event
 async def on_ready():
-    print(f"{bot.user} 已经成功上线！")
+    print(f"{bot.user} up！")
 
 @bot.event
 async def on_message(message):
     if message.author == bot.user:
         return
 
-    print(f"接收到消息：{message.content}")
-    # 自动回应消息
-    await message.channel.send("Hello from bot!")
+    await asyncio.sleep(1)
 
-# 启动 Bot（注意：使用 bot.run() 方法，不需要显式创建事件循环）
+    print(f"get msg：{message.content}")
+    # send to tg
+    send_to_telegram({message.content})
+
+
+def send_to_telegram(message):
+    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+    payload = {
+        "chat_id": TG_CHAT_ID,
+        "text": message,
+        "message_thread_id": TG_TOPIC_ID
+    }
+    try:
+        response = requests.post(url, data=payload)
+        response.raise_for_status()
+        print("success to Telegram")
+    except requests.exceptions.RequestException as e:
+        print(f"failed Telegram: {e}")
+        time.sleep(5)
+
+# start
 if __name__ == "__main__":
-    bot.run(token)  # 使用 bot.run() 启动 Bot
+    bot.run(dctoken)
