@@ -7,9 +7,9 @@ import os
 import aiohttp
 
 # -------------------
-#  设置日志
+# logging
 logging.basicConfig(
-    level=logging.INFO,  
+    level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
     handlers=[
         logging.FileHandler("bot.log", encoding="utf-8"),
@@ -81,7 +81,7 @@ async def send_to_telegram(message):
         "message_thread_id": TG_TOPIC_ID
     }
 
-    retry_delay = 2  # 初始重试间隔（秒）
+    retry_delay = 2  #init 2s
 
     async with aiohttp.ClientSession() as session:
         while True:
