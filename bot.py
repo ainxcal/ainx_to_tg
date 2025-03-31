@@ -1,11 +1,9 @@
 import asyncio
-import time
-
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
 import os
-import requests
+import aiohttp  # 异步 HTTP 请求库
 
 load_dotenv()
 
@@ -14,24 +12,25 @@ load_dotenv()
 # DC bot token
 dctoken = os.getenv("DC_BOT_TOKEN")
 
-#TG bot token
+# TG bot token
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 TG_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 TG_TOPIC_ID = os.getenv("MESSAGE_THREAD_ID")
 ###
-
 
 # -------------------
 #  Intents class
 intents = discord.Intents.default()
 intents.message_content = True
 
-# create bot client
+# 创建 bot client
 bot = commands.Bot(command_prefix="!", intents=intents)
+
 
 @bot.event
 async def on_ready():
     print(f"{bot.user} up！")
+
 
 @bot.event
 async def on_message(message):
@@ -41,25 +40,30 @@ async def on_message(message):
     await asyncio.sleep(1)
 
     print(f"get msg：{message.content}")
-    # send to tg
-    send_to_telegram({message.content})
+    await send_to_telegram(message.content)
 
 
-def send_to_telegram(message):
+
+async def send_to_telegram(message):
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
     payload = {
         "chat_id": TG_CHAT_ID,
         "text": message,
         "message_thread_id": TG_TOPIC_ID
     }
-    try:
-        response = requests.post(url, data=payload)
-        response.raise_for_status()
-        print("success to Telegram")
-    except requests.exceptions.RequestException as e:
-        print(f"failed Telegram: {e}")
-        time.sleep(5)
+    async with aiohttp.ClientSession() as session:
+        try:
+            async with session.post(url, data=payload) as response:
+                if response.status == 200:
+                    print("success to Telegram")
+                else:
+                    print(f"failed Telegram:  {response.status}")
+                    await asyncio.sleep(5)
+        except aiohttp.ClientError as e:
+            print(f"failed Telegram: {e}")
+            await asyncio.sleep(5)
 
-# start
+
+# 启动 bot
 if __name__ == "__main__":
     bot.run(dctoken)
