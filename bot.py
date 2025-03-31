@@ -1,7 +1,14 @@
 import discord
 from discord.ext import commands
+from dotenv import load_dotenv
+import os
 
+load_dotenv()
 
+# 从环境变量中获取 token
+token = os.getenv("TOKEN")
+if token is None:
+    raise ValueError("token null")
 
 # 创建 Intents 对象
 intents = discord.Intents.default()
@@ -25,4 +32,4 @@ async def on_message(message):
 
 # 启动 Bot（注意：使用 bot.run() 方法，不需要显式创建事件循环）
 if __name__ == "__main__":
-    bot.run("MTM1NDU2NDM0NDY1ODAwNjE3OA.GyR9Lm.qZwvjfkgbhEmN5NebOODdCWVYKuAhfUWkcTWHE")  # 使用 bot.run() 启动 Bot
+    bot.run(token)  # 使用 bot.run() 启动 Bot
